@@ -30,27 +30,44 @@ def parse_changelog(fpath):
     name, version, dist = m.groups()
     return name, version, dist
 
+def _detect_version_packages():
+    core = None
+    noncore = None
+
+    for fpath in glob.glob("/usr/share/doc/turnkey-*"):
+        pkgname = basename(fpath)
+        if pkgname in ('turnkey-pylib', 'turnkey-keyring', 'turnkey-release'):
+            continue
+
+        m = re.match(r'turnkey-(.*?)-([\d\.]+|beta)', pkgname)
+        if not m:
+            continue
+
+        codename, release = m.groups()
+        dist = parse_changelog(join(fpath, "changelog"))[2]
+
+        if dist == 'turnkey':
+            dist = 'lenny'
+
+        version = "turnkey-%s-%s-%s-x86" % (codename, release, dist)
+        if codename == 'core':
+            core = version
+        else:
+            noncore = version
+
+    return core, noncore
+
 def get_turnkey_version():
     try:
         return file("/etc/turnkey_version").read().strip()
     except IOError:
         pass
 
-    for fpath in glob.glob("/usr/share/doc/turnkey-*"):
-        pkgname = basename(fpath)
-        if pkgname in ('turnkey-pylib', 'turnkey-keyring', 'turnkey-version'):
-            continue
-
-        m = re.match(r'(turnkey-.*?)-([\d\.]+|beta)', pkgname)
-        if not m:
-            continue
-        codename, version = m.groups()
-        dist = parse_changelog(join(fpath, "changelog"))[2]
-
-        if dist == 'turnkey':
-            dist = 'lenny'
-
-        return "%s-%s-%s-x86" % (codename, version, dist)
+    core, noncore = _detect_version_packages()
+    if noncore:
+        return noncore
+    elif core:
+        return core
 
     raise Error("can't detect turnkey version")
     
