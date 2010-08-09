@@ -1,4 +1,6 @@
 #!/usr/bin/python
+import os
+from os.path import *
 import sys
 import getopt
 
@@ -18,6 +20,11 @@ def fatal(s):
     sys.exit(1)
 
 def get_turnkey_version():
+    try:
+        return file("/etc/turnkey_version").read().strip()
+    except IOError:
+        pass
+
     raise Error("can't detect turnkey version")
     
 def main():
