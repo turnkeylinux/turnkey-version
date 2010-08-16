@@ -16,8 +16,7 @@ def usage(e=None):
     if e:
         print >> sys.stderr, "error: " + str(e)
 
-    print >> sys.stderr, "Syntax: %s [args]" % sys.argv[0]
-    print >> sys.stderr, __doc__.strip()
+    print >> sys.stderr, "Syntax: %s [rootfs]" % sys.argv[0]
     sys.exit(1)
 
 class Error(Exception):
@@ -36,11 +35,11 @@ def parse_changelog(fpath):
     name, version, dist = m.groups()
     return name, version, dist
 
-def _detect_version_packages():
+def _detect_version_packages(rootfs):
     core = None
     noncore = None
 
-    for fpath in glob.glob("/usr/share/doc/turnkey-*"):
+    for fpath in glob.glob(join(rootfs, "usr/share/doc/turnkey-*")):
         pkgname = basename(fpath)
         if pkgname in ('turnkey-pylib', 'turnkey-keyring', 'turnkey-release'):
             continue
@@ -63,13 +62,13 @@ def _detect_version_packages():
 
     return core, noncore
 
-def get_turnkey_version():
+def get_turnkey_version(rootfs):
     try:
-        return file("/etc/turnkey_version").read().strip()
+        return file(join(rootfs, "etc/turnkey_version")).read().strip()
     except IOError:
         pass
 
-    core, noncore = _detect_version_packages()
+    core, noncore = _detect_version_packages(rootfs)
     if noncore:
         return noncore
     elif core:
@@ -78,8 +77,20 @@ def get_turnkey_version():
     raise Error("can't detect turnkey version")
     
 def main():
+    args = sys.argv[1:]
+
+    rootfs = "/"
+    if args:
+        if args[0] in ('-h', '--help'):
+            usage()
+
+        if len(args) != 1:
+            usage("incorrect number of arguments")
+
+        rootfs = args[0]
+
     try:
-        print get_turnkey_version()
+        print get_turnkey_version(rootfs)
     except Error, e:
         fatal(e)
     
