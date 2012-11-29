@@ -9,4 +9,4 @@ Package: turnkey-version
 Architecture: all
 Depends: python (>= 2.4)
 Section: misc
-Description: Example
+Description: Displays TurnKey Linux version information
