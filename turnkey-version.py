@@ -5,7 +5,6 @@
 # tklbam. In the future it shouldn't be needed as all appliances will be
 # marked with their versions.
 
-import os 
 from os.path import *
 
 import re
