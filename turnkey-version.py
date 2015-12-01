@@ -5,11 +5,9 @@
 # tklbam. In the future it shouldn't be needed as all appliances will be
 # marked with their versions.
 
-from os.path import *
+from os.path import join
 
-import re
 import sys
-import glob
 
 def usage(e=None):
     if e:
@@ -25,21 +23,12 @@ def fatal(s):
     print >> sys.stderr, "error: " + str(s)
     sys.exit(1)
 
-def parse_changelog(fpath):
-    firstline = file(fpath).readline()
-    m = re.match(r'(\S+) \((.*?)\) (\w+);', firstline)
-    if not m:
-        raise Error("couldn't parse changelog '%s'" % fpath)
-    
-    name, version, dist = m.groups()
-    return name, version, dist
-
 def get_turnkey_version(rootfs):
     try:
         return file(join(rootfs, "etc/turnkey_version")).read().strip()
     except IOError:
 	    raise Error("can't detect turnkey version - missing /etc/turnkey_version file")
-    
+
 def main():
     args = sys.argv[1:]
 
@@ -57,7 +46,7 @@ def main():
         print get_turnkey_version(rootfs)
     except Error, e:
         fatal(e)
-    
+
 if __name__=="__main__":
     main()
 
