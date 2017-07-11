@@ -13,5 +13,4 @@ Architecture: any
 Depends:
  ${misc:Depends},
  ${python:Depends},
-Section: misc
 Description: Displays TurnKey Linux version information
