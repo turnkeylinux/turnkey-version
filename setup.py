@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from distutils.core import setup
+
 setup(name='turnkey-version',
     version='1.0',
     description='Turnkey Version Reporting Utility',
