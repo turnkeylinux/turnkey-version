@@ -14,4 +14,8 @@ Depends:
  ${misc:Depends},
  ${python3:Depends},
  turnkey-sysinfo
-Description: Displays TurnKey Linux version information
+Description: Transitional package for turnkey-version.
+ This is a transitional package for turnkey-version with a Debian 10/Buster
+ base. The turnkey-version binary is now provided by the turnkey-sysinfo package.
+ .
+ This package can be safely removed.
