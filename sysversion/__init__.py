@@ -1,8 +1,9 @@
 # Copyright (c) 2010 Liraz Siri <liraz@turnkeylinux.org>
+#               2020 TurnKey GNU/Linux <admin@turnkeylinux.org>
 #
-# This file is part of turnkey-sysinfo.
+# This file is part of turnkey-version.
 #
-# turnkey-sysinfo is open source software; you can redistribute it and/or
+# turnkey-version is open source software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation; either version 3 of the
 # License, or (at your option) any later version.
