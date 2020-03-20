@@ -14,6 +14,7 @@
 # version.
 
 import sys
+import argparse
 
 import sysversion
 
@@ -31,6 +32,8 @@ class TurnkeyVersionError(Exception):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='TurnKey Version information')
+    parser.add_argument('rootfs', ...)
     args = sys.argv[1:]
 
     rootfs = "/"
