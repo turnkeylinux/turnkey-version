@@ -9,9 +9,13 @@
 # License, or (at your option) any later version.
 
 import re
-from subprocess import run, PIPE
-from os.path import join
+import subprocess
+from subprocess import PIPE
+from pathlib import Path
 from sys import stdin
+
+
+DEFAULT = 'etc/turnkey_version'
 
 
 def _parse_turnkey_release(version):
@@ -20,6 +24,15 @@ def _parse_turnkey_release(version):
         return m.group(1)
 
 
+def get_debian_codename(encoding=stdin.encoding):
+    """Return Debian codename of the system (leverages lsb_release)"""
+    process = subprocess.run(['lsb_release', '-sc'], stdout=PIPE)
+    if process.returncode != 0:
+        return
+    return process.stdout.decode(encoding).strip()
+
+
+# used by turnkey-version
 def get_turnkey_release(rootfs='/'):
     """Return release_version. On error, returns None"""
     turnkey_version = get_turnkey_version(rootfs=rootfs)
@@ -27,20 +40,35 @@ def get_turnkey_release(rootfs='/'):
         return _parse_turnkey_release(turnkey_version)
 
 
-def get_turnkey_version(rootfs='/'):
+def get_turnkey_version(rootfs='/', fpath=DEFAULT):
     """Return turnkey_version. On error, returns None"""
     try:
-        with open(join(rootfs, "etc/turnkey_version"), 'r') as fob:
-            return fob.read().strip()
-    except IOError:
+        p = Path(rootfs, fpath)
+        return p.read_text().strip()
+    except FileNotFoundError:
         pass
 
 
+class AppVer:
+    def __init__(self, application_version=None):
+        if not application_version:
+            application_version = get_turnkey_version()
+        app_ver_list = application_version.split('-')
+        if app_ver_list[0] == 'turnkey':
+            app_ver_list.pop(0)
+        *appname, self.tklver, self.codename, self.arch = app_ver_list
+        self.appname = '-'.join(appname)
+
+    def app_ver(self):
+        return (self.appname, self.tklver, self.codename, self.arch)
+
+
+# used by turnkey-sysinfo
 def fmt_base_distribution(encoding):
     """Return a formatted distribution string:
         e.g., Debian 10/Buster"""
 
-    process = run(["lsb_release", "-ircd"], stdout=PIPE)
+    process = subprocess.run(["lsb_release", "-ircd"], stdout=PIPE)
     if process.returncode != 0:
         return
 
