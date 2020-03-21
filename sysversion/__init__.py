@@ -32,7 +32,6 @@ def get_debian_codename(encoding=stdin.encoding):
     return process.stdout.decode(encoding).strip()
 
 
-# used by turnkey-version
 def get_turnkey_release(rootfs='/'):
     """Return release_version. On error, returns None"""
     turnkey_version = get_turnkey_version(rootfs=rootfs)
@@ -40,23 +39,24 @@ def get_turnkey_release(rootfs='/'):
         return _parse_turnkey_release(turnkey_version)
 
 
+# used by turnkey-version
 def get_turnkey_version(rootfs='/', fpath=DEFAULT):
     """Return turnkey_version. On error, returns None"""
     try:
-        p = Path(rootfs, fpath)
+        p = Path(rootfs, fpath).resolve()
         return p.read_text().strip()
     except FileNotFoundError:
         pass
 
 
 class AppVer:
-    def __init__(self, application_version=None):
-        if not application_version:
-            application_version = get_turnkey_version()
-        app_ver_list = application_version.split('-')
-        if app_ver_list[0] == 'turnkey':
-            app_ver_list.pop(0)
-        *appname, self.tklver, self.codename, self.arch = app_ver_list
+    def __init__(self, turnkey_version=None):
+        if not turnkey_version:
+            turnkey_version = get_turnkey_version()
+        tkl_ver_list = turnkey_version.split('-')
+        if tkl_ver_list[0] == 'turnkey':
+            tkl_ver_list.pop(0)
+        *appname, self.tklver, self.codename, self.arch = tkl_ver_list
         self.appname = '-'.join(appname)
 
     def app_ver(self):
