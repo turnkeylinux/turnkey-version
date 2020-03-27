@@ -29,22 +29,21 @@ class TurnkeyVersionError(Exception):
 def main():
     parser = argparse.ArgumentParser(
             description='TurnKey Linux Version information')
-    file_or_str = parser.add_mutually_exclusive_group()
     # rootfs provides backwards compatability
-    file_or_str.add_argument(
-            'rootfs', type=str, nargs="?", metavar="ROOTFS",
-            help="Path to root filesystem. If not set, assumes '/'. Expects"
-            " file: ROOTFS/etc/turnkey_version.")
+    parser.add_argument(
+            'rootfs', type=str, nargs="?",
+            help="Path to root filesystem. If not set, defaults to '/'.")
+    file_or_str = parser.add_mutually_exclusive_group()
     file_or_str.add_argument(
             '-f', '--file', type=str, metavar="PATH/TO/FILE", default=_TKL_VER,
-            help="Absolute or relative path to file containing turnkey version"
+            help="Absolute path to file containing turnkey version"
                  " string. If not set; default: '{}'. NOTE: conflicts with"
-                 " ROOTFS &/ -s|--string.".format(_TKL_VER))
+                 " -s|--string.".format(_TKL_VER))
     file_or_str.add_argument(
             '-s', '--string', type=str, metavar="TKL_VER_STR",
             help="Process a string, instead of reading from a file."
                  "('turnkey-' prefix optional). NOTE: Conflicts with"
-                 " ROOTFS &/or -f|--file.")
+                 " -f|--file.")
     output = parser.add_argument_group(
             'Output options',
             description="Return space separated values. NOTE: If multiple"
@@ -60,8 +59,7 @@ def main():
                         help="Return relevant architechture. E.g. amd64")
     output.add_argument('-a', '--all', action="store_true",
                         help="Return name, version, codename & arch."
-                        " (Same as -ntcr). NOTE: if multiple individual"
-                        " elements returned, this order will be preserved.")
+                        " (Same as -ntcr).")
     args = parser.parse_args()
     print(args)
     if args.all and (
