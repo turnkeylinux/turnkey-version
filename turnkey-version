@@ -61,7 +61,7 @@ def main():
                         help="Return name, version, codename & arch."
                         " (Same as -ntcr).")
     args = parser.parse_args()
-    print(args)
+
     if args.all and (
             args.name or args.tklversion or args.codename or args.arch):
         parser.error(
