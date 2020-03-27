@@ -19,8 +19,8 @@ from pathlib import Path
 
 import sysversion
 
-_ROOTFS = '/'
 _TKL_VER = '/etc/turnkey_version'
+
 
 class TurnkeyVersionError(Exception):
     pass
@@ -29,47 +29,58 @@ class TurnkeyVersionError(Exception):
 def main():
     parser = argparse.ArgumentParser(
             description='TurnKey Linux Version information')
-    # ensure backwards compatability
-    parser.add_argument('rootfs', type=str, nargs="?", default=_ROOTFS,
-            help=("Path to root filesystem. If not set; default: '{}'."
-                 ).format(_ROOTFS))
-    parser.add_argument('-f', '--file', type=str, metavar="PATH/TO/FILE",
-            default=_TKL_VER,
-            help="Absolute path to file containing turnkey version string. If"
-                 " not set; default: '{}'. NOTE: this will be relative to"
-                 " rootfs (duplicate slashes ignored).".format(_TKL_VER))
-    parser.add_argument('-s', '--string', type=str, metavar="TKL_VER_STR",
+    file_or_str = parser.add_mutually_exclusive_group()
+    # rootfs provides backwards compatability
+    file_or_str.add_argument(
+            'rootfs', type=str, nargs="?", metavar="ROOTFS",
+            help="Path to root filesystem. If not set, assumes '/'. Expects"
+            " file: ROOTFS/etc/turnkey_version.")
+    file_or_str.add_argument(
+            '-f', '--file', type=str, metavar="PATH/TO/FILE", default=_TKL_VER,
+            help="Absolute or relative path to file containing turnkey version"
+                 " string. If not set; default: '{}'. NOTE: conflicts with"
+                 " ROOTFS &/ -s|--string.".format(_TKL_VER))
+    file_or_str.add_argument(
+            '-s', '--string', type=str, metavar="TKL_VER_STR",
             help="Process a string, instead of reading from a file."
-                 "('turnkey-' prefix not required). NOTE: If set,"
-                 " rootfs &/or -f|--file will be ignored.")
-    parser.add_argument('-n', '--name', action="store_true",
-            help="Return TurnKey appliance name. E.g. core.")
-    parser.add_argument('-t', '--tklversion', action="store_true",
-            help="Return TurnKey version number. E.g. 16.0.")
-    parser.add_argument('-c', '--codename', action="store_true",
-            help="Return relevant Debian codename. E.g. buster.")
-    parser.add_argument('-r', '--arch', action="store_true",
-            help="Return relevant architechture. E.g. amd64")
-    parser.add_argument('-a', '--all', action="store_true",
-            help="Return (space separated) name, version, codename & arch."
-                 " (Same as -ntcr). NOTE: if multiple individual elements"
-                 " returned, this order will be preserved.")
+                 "('turnkey-' prefix optional). NOTE: Conflicts with"
+                 " ROOTFS &/or -f|--file.")
+    output = parser.add_argument_group(
+            'Output options',
+            description="Return space separated values. NOTE: If multiple"
+            " elements returned, the order will always be: 'NAME VERSION"
+            " CODENAME ARCH' (regardless of switch order).")
+    output.add_argument('-n', '--name', action="store_true",
+                        help="Return TurnKey appliance name. E.g. core.")
+    output.add_argument('-t', '--tklversion', action="store_true",
+                        help="Return TurnKey version number. E.g. 16.0.")
+    output.add_argument('-c', '--codename', action="store_true",
+                        help="Return relevant Debian codename. E.g. buster.")
+    output.add_argument('-r', '--arch', action="store_true",
+                        help="Return relevant architechture. E.g. amd64")
+    output.add_argument('-a', '--all', action="store_true",
+                        help="Return name, version, codename & arch."
+                        " (Same as -ntcr). NOTE: if multiple individual"
+                        " elements returned, this order will be preserved.")
     args = parser.parse_args()
     print(args)
-    if args.all and (args.name or args.tklversion or args.codename or args.arch):
-        parser.error("-a|--all and -n|--name / -t|--tklversion / -c|--codename"
-                     " / -r|--arch are mutually exclusive.")
+    if args.all and (
+            args.name or args.tklversion or args.codename or args.arch):
+        parser.error(
+                "-a|--all and -n|--name / -t|--tklversion / -c|--codename"
+                " / -r|--arch are mutually exclusive.")
 
     if args.string:
         turnkey_version = args.string
-    elif args.rootfs or args.file:
-        turnkey_version = sysversion.get_turnkey_version(args.rootfs, args.file)
-        if not turnkey_version:
-            raise TurnkeyVersionError(
-                ("can't detect turnkey version - missing or invalid file '{}'."
-                ).format(Path(args.rootfs, args.file).resolve()))
     else:
-        raise TurnkeyVersionError("This should not be!")
+        if not args.rootfs:
+            args.rootfs = '/'
+        turnkey_version = sysversion.get_turnkey_version(args.rootfs,
+                                                         args.file)
+    if not turnkey_version:
+        raise TurnkeyVersionError(
+                ("can't detect turnkey version - missing or invalid file '{}'."
+                 ).format(Path(args.rootfs, args.file).resolve()))
 
     tkl_appver = []
     tkl_appver_cls = sysversion.AppVer(turnkey_version)
