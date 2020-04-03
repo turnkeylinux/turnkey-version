@@ -77,7 +77,6 @@ def fmt_base_distribution(encoding=stdin.encoding):
     d = dict([line.split(':\t')
               for line in proc.stdout.splitlines()])
 
-    codename = d['Codename'].capitalize()
     basedist = "{} {}/{}".format(d['Distributor ID'],
                                  d['Release'],
                                  d['Codename'].capitalize())
