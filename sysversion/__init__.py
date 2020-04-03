@@ -11,7 +11,7 @@
 import re
 import subprocess
 from subprocess import PIPE
-from pathlib import Path
+import os
 from sys import stdin
 
 
@@ -42,11 +42,13 @@ def get_turnkey_release(rootfs='/'):
 
 # used by turnkey-version
 def get_turnkey_version(rootfs='/', fpath=DEFAULT):
-    """Return turnkey_version. On error, returns None"""
+    """Return turnkey_version. On error, returns None.
+    Warning: if fpath is an absoulte path, rootfs will be ignored.
+    """
     try:
-        p = Path(rootfs, fpath).resolve()
-        return p.read_text().strip()
-    except FileNotFoundError:
+        with open(os.path.join(rootfs, fpath), 'r') as fob:
+            return fob.read().strip()
+    except IOError:
         pass
 
 

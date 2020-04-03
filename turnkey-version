@@ -19,7 +19,7 @@ from pathlib import Path
 
 import sysversion
 
-_TKL_VER = '/etc/turnkey_version'
+_TKL_VER = 'etc/turnkey_version'
 
 
 class TurnkeyVersionError(Exception):
@@ -31,7 +31,7 @@ def main():
             description='TurnKey Linux Version information')
     # rootfs provides backwards compatability
     parser.add_argument(
-            'rootfs', type=str, nargs="?",
+            'rootfs', type=str, nargs="?", default='/',
             help="Path to root filesystem. If not set, defaults to '/'.")
     file_or_str = parser.add_mutually_exclusive_group()
     file_or_str.add_argument(
@@ -71,10 +71,9 @@ def main():
     if args.string:
         turnkey_version = args.string
     else:
-        if not args.rootfs:
-            args.rootfs = '/'
+        # ensure that args.file is relative to args.rooffs
         turnkey_version = sysversion.get_turnkey_version(args.rootfs,
-                                                         args.file)
+                                                         args.file.lstrip('/'))
     if not turnkey_version:
         raise TurnkeyVersionError(
                 ("can't detect turnkey version - missing or invalid file '{}'."
