@@ -26,10 +26,11 @@ def _parse_turnkey_release(version):
 
 def get_debian_codename(encoding=stdin.encoding):
     """Return Debian codename of the system (leverages lsb_release)"""
-    process = subprocess.run(['lsb_release', '-sc'], stdout=PIPE)
-    if process.returncode != 0:
+    proc = subprocess.run(['lsb_release', '-sc'], stdout=PIPE,
+                          encoding=encoding)
+    if proc.returncode != 0:
         return
-    return process.stdout.decode(encoding).strip()
+    return proc.stdout.strip()
 
 
 def get_turnkey_release(rootfs='/'):
@@ -64,16 +65,17 @@ class AppVer:
 
 
 # used by turnkey-sysinfo
-def fmt_base_distribution(encoding):
+def fmt_base_distribution(encoding=stdin.encoding):
     """Return a formatted distribution string:
         e.g., Debian 10/Buster"""
 
-    process = subprocess.run(["lsb_release", "-ircd"], stdout=PIPE)
-    if process.returncode != 0:
+    proc = subprocess.run(["lsb_release", "-ircd"], stdout=PIPE,
+                          encoding=encoding)
+    if proc.returncode != 0:
         return
 
     d = dict([line.split(':\t')
-              for line in process.stdout.decode(encoding).splitlines()])
+              for line in proc.stdout.splitlines()])
 
     codename = d['Codename'].capitalize()
     basedist = "{} {}/{}".format(d['Distributor ID'],
