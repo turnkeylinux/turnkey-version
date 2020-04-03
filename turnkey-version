@@ -19,7 +19,7 @@ from pathlib import Path
 
 import sysversion
 
-_TKL_VER = 'etc/turnkey_version'
+_TKL_VER = '/etc/turnkey_version'
 
 
 class TurnkeyVersionError(Exception):
@@ -36,8 +36,8 @@ def main():
     file_or_str = parser.add_mutually_exclusive_group()
     file_or_str.add_argument(
             '-f', '--file', type=str, metavar="PATH/TO/FILE", default=_TKL_VER,
-            help="Absolute path to file containing turnkey version"
-                 " string. If not set; default: '{}'. NOTE: conflicts with"
+            help="Path to file containing turnkey version string."
+                 " If not set; default: '{}'. NOTE: conflicts with"
                  " -s|--string.".format(_TKL_VER))
     file_or_str.add_argument(
             '-s', '--string', type=str, metavar="TKL_VER_STR",
