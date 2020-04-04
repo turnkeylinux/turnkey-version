@@ -6,12 +6,6 @@
 # modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation; either version 3 of the
 # License, or (at your option) any later version.
-#
-# turnkey-version was initially implemented as ad-hoc version detection
-# for a system installed from a TurnKey appliance. Technically this is no
-# longer needed as all appliances are marked with their versions. However
-# it is still included as a convenience script for gathering the TurnKey
-# version.
 
 import sys
 import argparse
