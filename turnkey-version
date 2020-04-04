@@ -15,11 +15,12 @@
 
 import sys
 import argparse
-from pathlib import Path
+import os
 
 import sysversion
 
-_TKL_VER = '/etc/turnkey_version'
+_ROOTFS = '/'
+_TKL_VER = 'etc/turnkey_version'
 
 
 class TurnkeyVersionError(Exception):
@@ -29,16 +30,16 @@ class TurnkeyVersionError(Exception):
 def main():
     parser = argparse.ArgumentParser(
             description='TurnKey Linux Version information')
-    # rootfs provides backwards compatability
-    parser.add_argument(
-            'rootfs', type=str, nargs="?", default='/',
-            help="Path to root filesystem. If not set, defaults to '/'.")
     file_or_str = parser.add_mutually_exclusive_group()
+    # rootfs provides backwards compatability
     file_or_str.add_argument(
-            '-f', '--file', type=str, metavar="PATH/TO/FILE", default=_TKL_VER,
-            help="Path to file containing turnkey version string."
-                 " If not set; default: '{}'. NOTE: conflicts with"
-                 " -s|--string.".format(_TKL_VER))
+            'rootfs', type=str, nargs="?", default=_ROOTFS,
+            help="Path to root filesystem, defaults to '/'. Will read file"
+                 " 'ROOTFS/{}'.".format(_TKL_VER))
+    file_or_str.add_argument(
+            '-f', '--file', type=str, metavar="PATH/TO/FILE", default=None,
+            help="Absolute or relative path to alternative file containing"
+                 " turnkey version string. NOTE: conflicts with -s|--string.")
     file_or_str.add_argument(
             '-s', '--string', type=str, metavar="TKL_VER_STR",
             help="Process a string, instead of reading from a file."
@@ -72,12 +73,18 @@ def main():
         turnkey_version = args.string
     else:
         # ensure that args.file is relative to args.rooffs
-        turnkey_version = sysversion.get_turnkey_version(args.rootfs,
-                                                         args.file.lstrip('/'))
+        if args.file:
+            rootfs = ''
+            v_file = os.path.abspath(args.file)
+        else:
+            rootfs = args.rootfs
+            v_file = _TKL_VER
+
+        turnkey_version = sysversion.get_turnkey_version(rootfs, v_file)
     if not turnkey_version:
         raise TurnkeyVersionError(
                 ("can't detect turnkey version - missing or invalid file '{}'."
-                 ).format(Path(args.rootfs, args.file).resolve()))
+                 ).format(os.path.join(rootfs, v_file)))
 
     tkl_appver = []
     tkl_appver_cls = sysversion.AppVer(turnkey_version)
