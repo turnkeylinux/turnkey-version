@@ -24,9 +24,12 @@ def _parse_turnkey_release(version):
         return m.group(1)
 
 
-def get_debian_codename(encoding=stdin.encoding):
+def get_debian_codename(encoding=stdin.encoding, rootfs=None):
     """Return Debian codename of the system (leverages lsb_release)"""
-    proc = subprocess.run(['lsb_release', '-sc'], stdout=PIPE,
+    comm = ['lsb_release', '-sc']
+    if rootfs and rootfs != '/':
+        comm = ['chroot', rootfs] + comm
+    proc = subprocess.run(comm, stdout=PIPE,
                           encoding=encoding)
     if proc.returncode != 0:
         return
@@ -53,21 +56,25 @@ def get_turnkey_version(rootfs='/', fpath=DEFAULT):
 
 
 class AppVer:
-    def __init__(self, turnkey_version=None):
+    def __init__(self, turnkey_version=None, rootfs=None):
         if not turnkey_version:
-            turnkey_version = get_turnkey_version()
+            turnkey_version = get_turnkey_version(rootfs=rootfs)
         tkl_ver_list = turnkey_version.split('-')
         if tkl_ver_list[0] == 'turnkey':
             tkl_ver_list.pop(0)
         *appname, self.tklver, self.codename, self.arch = tkl_ver_list
+        self.deb_codename = get_debian_codename(rootfs=rootfs)
         self.appname = '-'.join(appname)
 
     def app_ver(self):
         return (self.appname, self.tklver, self.codename, self.arch)
 
-    def app_json(self):
-        return {'name': self.appname, 'tklver': self.tklver,
-                'codename': self.codename, 'arch': self.arch}
+    def app_json(self, deb_ver=False):
+        _json = {'name': self.appname, 'tklver': self.tklver,
+                 'codename': self.codename, 'arch': self.arch}
+        if deb_ver:
+            _json['debian_codename'] = self.deb_codename
+        return _json
 
 # used by turnkey-sysinfo
 def fmt_base_distribution(encoding=stdin.encoding):

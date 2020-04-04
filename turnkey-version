@@ -66,6 +66,17 @@ def main():
     output.add_argument('-j', '--json', action="store_true",
                         help="Return all name info in json format (conflists"
                         " with other output options).")
+    additional_output = parser.add_argument_group(
+            'Additional output options',
+            description="Additional values to return. If specfified, these"
+                        " values will be appended after any other results"
+                        " returned, either space separated, or if -j|--json,"
+                        " as additiona key, value pairs.")
+    additional_output.add_argument('-d', '--debian-codename', action="store_true",
+                                   help="Return system's reported Debian"
+                                        " codename. If rootfs set, then reuurn"
+                                        " codename of chroot.")
+
     args = parser.parse_args()
     if args.name or args.tklversion or args.codename or args.arch:
             output_values = True
@@ -96,7 +107,7 @@ def main():
                  ).format(os.path.join(rootfs, v_file)))
 
     tkl_appver = []
-    tkl_appver_cls = sysversion.AppVer(turnkey_version)
+    tkl_appver_cls = sysversion.AppVer(turnkey_version, rootfs=rootfs)
     if args.all:
         args.name = True
         args.tklversion = True
@@ -110,6 +121,8 @@ def main():
         tkl_appver.append(tkl_appver_cls.codename)
     if args.arch:
         tkl_appver.append(tkl_appver_cls.arch)
+    if args.debian_codename:
+        tkl_appver.append(tkl_appver_cls.deb_codename)
     if tkl_appver:
         print(' '.join(tkl_appver))
     elif args.json:
