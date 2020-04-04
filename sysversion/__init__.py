@@ -65,6 +65,9 @@ class AppVer:
     def app_ver(self):
         return (self.appname, self.tklver, self.codename, self.arch)
 
+    def app_json(self):
+        return {'name': self.appname, 'tklver': self.tklver,
+                'codename': self.codename, 'arch': self.arch}
 
 # used by turnkey-sysinfo
 def fmt_base_distribution(encoding=stdin.encoding):

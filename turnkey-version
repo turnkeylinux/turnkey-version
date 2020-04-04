@@ -16,6 +16,7 @@
 import sys
 import argparse
 import os
+import json
 
 import sysversion
 
@@ -47,9 +48,10 @@ def main():
                  " -f|--file.")
     output = parser.add_argument_group(
             'Output options',
-            description="Return space separated values. NOTE: If multiple"
-            " elements returned, the order will always be: 'NAME VERSION"
-            " CODENAME ARCH' (regardless of switch order).")
+            description="Return space separated values, or all values in json"
+                        " format. NOTE: If multiple elements returned, the"
+                        " order will always be: 'NAME VERSION CODENAME ARCH'"
+                        " (regardless of switch order).")
     output.add_argument('-n', '--name', action="store_true",
                         help="Return TurnKey appliance name. E.g. core.")
     output.add_argument('-t', '--tklversion', action="store_true",
@@ -59,16 +61,23 @@ def main():
     output.add_argument('-r', '--arch', action="store_true",
                         help="Return relevant architechture. E.g. amd64")
     output.add_argument('-a', '--all', action="store_true",
-                        help="Return name, version, codename & arch."
-                        " (Same as -ntcr).")
+                        help="Return space separated name, version, codename &"
+                        " arch. (Same as -ntcr).")
+    output.add_argument('-j', '--json', action="store_true",
+                        help="Return all name info in json format (conflists"
+                        " with other output options).")
     args = parser.parse_args()
-
-    if args.all and (
-            args.name or args.tklversion or args.codename or args.arch):
-        parser.error(
+    if args.name or args.tklversion or args.codename or args.arch:
+            output_values = True
+    else:
+            output_values = False
+    if args.all and output_values:
+            parser.error(
                 "-a|--all and -n|--name / -t|--tklversion / -c|--codename"
                 " / -r|--arch are mutually exclusive.")
-
+    if args.json and ( args.all or output_values):
+            parser.error(
+                "-j|--json conflicts with other output values.")
     if args.string:
         turnkey_version = args.string
     else:
@@ -103,6 +112,8 @@ def main():
         tkl_appver.append(tkl_appver_cls.arch)
     if tkl_appver:
         print(' '.join(tkl_appver))
+    elif args.json:
+        print(json.dumps(tkl_appver_cls.app_json(), indent=2))
     else:
         print(turnkey_version)
 
