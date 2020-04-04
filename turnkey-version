@@ -39,8 +39,8 @@ def main():
                  " 'ROOTFS/{}'.".format(_TKL_VER))
     file_or_str.add_argument(
             '-f', '--file', type=str, metavar="PATH/TO/FILE", default=None,
-            help="Absolute or relative path to alternative file containing"
-                 " turnkey version string. NOTE: conflicts with -s|--string.")
+            help="Absolute or relative path to file containing turnkey version"
+                 " string. NOTE: conflicts with -s|--string.")
     file_or_str.add_argument(
             '-s', '--string', type=str, metavar="TKL_VER_STR",
             help="Process a string, instead of reading from a file."
@@ -64,17 +64,18 @@ def main():
                         help="Return space separated name, version, codename &"
                         " arch. (Same as -ntcr).")
     output.add_argument('-j', '--json', action="store_true",
-                        help="Return all name info in json format (conflists"
+                        help="Return all name info in json format (conflicts"
                         " with other output options).")
     additional_output = parser.add_argument_group(
             'Additional output options',
-            description="Additional values to return. If specfified, these"
-                        " values will be appended after any other results"
-                        " returned, either space separated, or if -j|--json,"
+            description="Return additional values. If no other output options"
+                        " specified, these will be the only output. Otherwise,"
+                        " these values will be appended after any other"
+                        " results returned, either space separated, or if -j|--json,"
                         " as additiona key, value pairs.")
     additional_output.add_argument('-d', '--debian-codename', action="store_true",
                                    help="Return system's reported Debian"
-                                        " codename. If rootfs set, then reuurn"
+                                        " codename. If rootfs set, then return"
                                         " codename of chroot.")
 
     args = parser.parse_args()
@@ -123,10 +124,10 @@ def main():
         tkl_appver.append(tkl_appver_cls.arch)
     if args.debian_codename:
         tkl_appver.append(tkl_appver_cls.deb_codename)
-    if tkl_appver:
+    if args.json:
+        print(json.dumps(tkl_appver_cls.app_json(deb_ver=args.debian_codename), indent=2))
+    elif tkl_appver:
         print(' '.join(tkl_appver))
-    elif args.json:
-        print(json.dumps(tkl_appver_cls.app_json(), indent=2))
     else:
         print(turnkey_version)
 
