@@ -6,24 +6,16 @@
 # modify it under the terms of the GNU General Public License as
 # published by the Free Software Foundation; either version 3 of the
 # License, or (at your option) any later version.
-#
-# turnkey-version was initially implemented as ad-hoc version detection
-# for a system installed from a TurnKey appliance. Technically this is no
-# longer needed as all appliances are marked with their versions. However
-# it is still included as a convenience script for gathering the TurnKey
-# version.
 
 import sys
+import argparse
+import os
+import json
 
 import sysversion
 
-
-def usage(e=None):
-    if e:
-        print("error: " + str(e), file=sys.stderr)
-
-    print("Syntax: {} [rootfs]".format(sys.argv[0]), file=sys.stderr)
-    sys.exit(1)
+_ROOTFS = '/'
+_TKL_VER = 'etc/turnkey_version'
 
 
 class TurnkeyVersionError(Exception):
@@ -31,24 +23,109 @@ class TurnkeyVersionError(Exception):
 
 
 def main():
-    args = sys.argv[1:]
+    parser = argparse.ArgumentParser(
+            description='TurnKey Linux Version information')
+    file_or_str = parser.add_mutually_exclusive_group()
+    # rootfs provides backwards compatability
+    file_or_str.add_argument(
+            'rootfs', type=str, nargs="?", default=_ROOTFS,
+            help="Path to root filesystem, defaults to '/'. Will read file"
+                 " 'ROOTFS/{}'.".format(_TKL_VER))
+    file_or_str.add_argument(
+            '-f', '--file', type=str, metavar="PATH_TO_FILE", default=None,
+            help="Absolute (i.e. leading /) or relative (to current; i.e. no"
+                 " leading /) path to file containing turnkey version string."
+                 " NOTE: conflicts with -s|--string.")
+    file_or_str.add_argument(
+            '-s', '--string', type=str, metavar="TKL_VER_STR",
+            help="Process a string, instead of reading from a file."
+                 "('turnkey-' prefix optional). NOTE: Conflicts with"
+                 " -f|--file.")
+    output = parser.add_argument_group(
+            'Output options',
+            description="Return space separated values, or all values in json"
+                        " format. NOTE: If multiple elements returned, the"
+                        " order will always be: 'NAME VERSION CODENAME ARCH'"
+                        " (regardless of switch order).")
+    output.add_argument('-n', '--name', action="store_true",
+                        help="Return TurnKey appliance name. E.g. core.")
+    output.add_argument('-t', '--tklversion', action="store_true",
+                        help="Return TurnKey version number. E.g. 16.0.")
+    output.add_argument('-c', '--codename', action="store_true",
+                        help="Return relevant Debian codename. E.g. buster.")
+    output.add_argument('-r', '--arch', action="store_true",
+                        help="Return relevant architechture. E.g. amd64")
+    output.add_argument('-a', '--all', action="store_true",
+                        help="Return space separated name, version, codename &"
+                        " arch. (Same as -ntcr).")
+    output.add_argument('-j', '--json', action="store_true",
+                        help="Return all name info in json format (conflicts"
+                        " with other output options).")
+    additional_output = parser.add_argument_group(
+            'Additional output options',
+            description="Return additional values. If no other output options"
+                        " specified, these will be the only output. Otherwise,"
+                        " these values will be appended after any other"
+                        " results returned, either space separated, or if -j|--json,"
+                        " as additional key, value pairs.")
+    additional_output.add_argument('-d', '--debian-codename', action="store_true",
+                                   help="Return system's reported Debian"
+                                        " codename (not TurnKey version"
+                                        " codename). If rootfs set, then"
+                                        " return codename of chroot.")
 
-    rootfs = "/"
-    if args:
-        if args[0] in ('-h', '--help'):
-            usage()
-
-        if len(args) != 1:
-            usage("incorrect number of arguments")
-
-        rootfs = args[0]
-
-    turnkey_version = sysversion.get_turnkey_version(rootfs)
-    if turnkey_version:
-        print(turnkey_version)
+    args = parser.parse_args()
+    if args.name or args.tklversion or args.codename or args.arch:
+            output_values = True
     else:
+            output_values = False
+    if args.all and output_values:
+            parser.error(
+                "-a|--all and -n|--name / -t|--tklversion / -c|--codename"
+                " / -r|--arch are mutually exclusive.")
+    if args.json and ( args.all or output_values):
+            parser.error(
+                "-j|--json conflicts with other output values.")
+    if args.string:
+        turnkey_version = args.string
+    else:
+        # ensure that args.file is relative to args.rooffs
+        if args.file:
+            rootfs = ''
+            v_file = os.path.abspath(args.file)
+        else:
+            rootfs = args.rootfs
+            v_file = _TKL_VER
+
+        turnkey_version = sysversion.get_turnkey_version(rootfs, v_file)
+    if not turnkey_version:
         raise TurnkeyVersionError(
-            "can't detect turnkey version - missing /etc/turnkey_version file")
+                ("can't detect turnkey version - missing or invalid file '{}'."
+                 ).format(os.path.join(rootfs, v_file)))
+
+    tkl_appver = []
+    tkl_appver_cls = sysversion.AppVer(turnkey_version, rootfs=rootfs)
+    if args.all:
+        args.name = True
+        args.tklversion = True
+        args.codename = True
+        args.arch = True
+    if args.name:
+        tkl_appver.append(tkl_appver_cls.appname)
+    if args.tklversion:
+        tkl_appver.append(tkl_appver_cls.tklver)
+    if args.codename:
+        tkl_appver.append(tkl_appver_cls.codename)
+    if args.arch:
+        tkl_appver.append(tkl_appver_cls.arch)
+    if args.debian_codename:
+        tkl_appver.append(tkl_appver_cls.deb_codename)
+    if args.json:
+        print(json.dumps(tkl_appver_cls.app_json(deb_ver=args.debian_codename), indent=2))
+    elif tkl_appver:
+        print(' '.join(tkl_appver))
+    else:
+        print(turnkey_version)
 
 
 if __name__ == "__main__":
