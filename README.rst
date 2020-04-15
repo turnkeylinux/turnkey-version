@@ -1,7 +1,6 @@
-usage: turnkey-version [-h] |
-                       [rootfs] | [-f PATH/TO/FILE] | [-s TKL_VER_STR]
-                       [-a] | [-n] [-t] [-c] [-r] | [-j]
-                       [-d]
+usage: turnkey-version [-h] [-f PATH_TO_FILE] [-s TKL_VER_STR] [-n] [-t] [-c]
+                       [-r] [-a] [-j] [-d]
+                       [rootfs]
 
 TurnKey Linux Version information
 
@@ -11,8 +10,9 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f PATH/TO/FILE, --file PATH/TO/FILE
-                        Absolute or relative path to file containing turnkey
+  -f PATH_TO_FILE, --file PATH_TO_FILE
+                        Absolute (i.e. leading /) or relative (to current;
+                        i.e. no leading /) path to file containing turnkey
                         version string. NOTE: conflicts with -s|--string.
   -s TKL_VER_STR, --string TKL_VER_STR
                         Process a string, instead of reading from a
@@ -37,8 +37,9 @@ Additional output options:
   Return additional values. If no other output options specified, these will
   be the only output. Otherwise, these values will be appended after any
   other results returned, either space separated, or if -j|--json, as
-  additiona key, value pairs.
+  additional key, value pairs.
 
   -d, --debian-codename
-                        Return system's reported Debian codename. If rootfs
-                        set, then return codename of chroot.
+                        Return system's reported Debian codename (not TurnKey
+                        version codename). If rootfs set, then return codename
+                        of chroot.

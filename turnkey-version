@@ -32,9 +32,10 @@ def main():
             help="Path to root filesystem, defaults to '/'. Will read file"
                  " 'ROOTFS/{}'.".format(_TKL_VER))
     file_or_str.add_argument(
-            '-f', '--file', type=str, metavar="PATH/TO/FILE", default=None,
-            help="Absolute or relative path to file containing turnkey version"
-                 " string. NOTE: conflicts with -s|--string.")
+            '-f', '--file', type=str, metavar="PATH_TO_FILE", default=None,
+            help="Absolute (i.e. leading /) or relative (to current; i.e. no"
+                 " leading /) path to file containing turnkey version string."
+                 " NOTE: conflicts with -s|--string.")
     file_or_str.add_argument(
             '-s', '--string', type=str, metavar="TKL_VER_STR",
             help="Process a string, instead of reading from a file."
@@ -66,11 +67,12 @@ def main():
                         " specified, these will be the only output. Otherwise,"
                         " these values will be appended after any other"
                         " results returned, either space separated, or if -j|--json,"
-                        " as additiona key, value pairs.")
+                        " as additional key, value pairs.")
     additional_output.add_argument('-d', '--debian-codename', action="store_true",
                                    help="Return system's reported Debian"
-                                        " codename. If rootfs set, then return"
-                                        " codename of chroot.")
+                                        " codename (not TurnKey version"
+                                        " codename). If rootfs set, then"
+                                        " return codename of chroot.")
 
     args = parser.parse_args()
     if args.name or args.tklversion or args.codename or args.arch:
