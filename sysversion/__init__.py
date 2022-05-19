@@ -13,18 +13,25 @@ import subprocess
 from subprocess import PIPE
 import os
 from sys import stdin
-
+from typing import Optional
 
 DEFAULT = 'etc/turnkey_version'
 
 
-def _parse_turnkey_release(version):
+class TurnkeyVersionError(Exception):
+    pass
+
+
+def _parse_turnkey_release(version: str) -> str:
     m = re.match(r'turnkey-.*?-(\d.*?)-[^\d]', version)
     if m:
         return m.group(1)
+    return ''
 
 
-def get_debian_codename(encoding=stdin.encoding, rootfs=None):
+def get_debian_codename(encoding: str = stdin.encoding,
+                        rootfs: str = None
+                        ) -> str:
     """Return Debian codename of the system (leverages lsb_release)"""
     comm = ['lsb_release', '-sc']
     if rootfs and rootfs != '/':
@@ -32,33 +39,44 @@ def get_debian_codename(encoding=stdin.encoding, rootfs=None):
     proc = subprocess.run(comm, stdout=PIPE,
                           encoding=encoding)
     if proc.returncode != 0:
-        return
-    return proc.stdout.strip()
+        raise TurnkeyVersionError("lsb_release failed: {proc}'")
+    return proc.stdout.rstrip()
 
 
-def get_turnkey_release(rootfs='/'):
+def get_turnkey_release(rootfs: str = '/') -> Optional[str]:
     """Return release_version. On error, returns None"""
     turnkey_version = get_turnkey_version(rootfs=rootfs)
     if turnkey_version:
         return _parse_turnkey_release(turnkey_version)
+    return None
 
 
 # used by turnkey-version
-def get_turnkey_version(rootfs='/', fpath=DEFAULT):
+def get_turnkey_version(rootfs: str = '/',
+                        fpath: str = None
+                        ) -> Optional[str]:
     """Return turnkey_version. On error, returns None.
     Warning: if fpath is an absoulte path, rootfs will be ignored.
     """
+    if not fpath:
+        fpath = DEFAULT
     try:
         with open(os.path.join(rootfs, fpath), 'r') as fob:
             return fob.read().strip()
     except IOError:
         pass
+    return None
 
 
 class AppVer:
-    def __init__(self, turnkey_version=None, rootfs=None):
+    def __init__(self, turnkey_version: str = None, rootfs: str = None):
         if not turnkey_version:
-            turnkey_version = get_turnkey_version(rootfs=rootfs)
+            kwargs = {}
+            if rootfs:
+                kwargs['rootfs'] = rootfs
+            turnkey_version = get_turnkey_version(**kwargs)
+        if not turnkey_version:
+            raise TurnkeyVersionError('Error: No TurnKey version found')
         tkl_ver_list = turnkey_version.split('-')
         if tkl_ver_list[0] == 'turnkey':
             tkl_ver_list.pop(0)
@@ -66,36 +84,31 @@ class AppVer:
         self.deb_codename = get_debian_codename(rootfs=rootfs)
         self.appname = '-'.join(appname)
 
-    def app_ver(self):
+    def app_ver(self) -> tuple[str, str, str, str]:
         return (self.appname, self.tklver, self.codename, self.arch)
 
-    def app_json(self, deb_ver=False):
+    def app_json(self, deb_ver: bool = False) -> dict[str, str]:
         _json = {'name': self.appname, 'tklver': self.tklver,
                  'codename': self.codename, 'arch': self.arch}
         if deb_ver:
             _json['debian_codename'] = self.deb_codename
         return _json
 
+
 # used by turnkey-sysinfo
-def fmt_base_distribution(encoding=stdin.encoding):
+def fmt_base_distribution(encoding: str = stdin.encoding) -> str:
     """Return a formatted distribution string:
         e.g., Debian 10/Buster"""
-
-    proc = subprocess.run(["lsb_release", "-ircd"], stdout=PIPE,
-                          encoding=encoding)
+    proc = subprocess.run(["lsb_release", "-ircs"],
+                          capture_output=True, text=True)
     if proc.returncode != 0:
-        return
-
-    d = dict([line.split(':\t')
-              for line in proc.stdout.splitlines()])
-
-    basedist = "{} {}/{}".format(d['Distributor ID'],
-                                 d['Release'],
-                                 d['Codename'].capitalize())
+        raise TurnkeyVersionError(f'lsb_release failed: {proc}')
+    distro, release, codename = proc.stdout.splitlines()
+    basedist = f"{distro} {release}/{codename.capitalize()}"
     return basedist
 
 
-def fmt_sysversion(encoding=stdin.encoding):
+def fmt_sysversion(encoding: str = stdin.encoding) -> str:
     version_parts = []
     release = get_turnkey_release()
     if release:

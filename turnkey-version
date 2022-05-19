@@ -16,10 +16,7 @@ import sysversion
 
 _ROOTFS = '/'
 _TKL_VER = 'etc/turnkey_version'
-
-
-class TurnkeyVersionError(Exception):
-    pass
+TurnkeyVersionError = sysversion.TurnkeyVersionError
 
 
 def main():
@@ -30,7 +27,7 @@ def main():
     file_or_str.add_argument(
             'rootfs', type=str, nargs="?", default=_ROOTFS,
             help="Path to root filesystem, defaults to '/'. Will read file"
-                 " 'ROOTFS/{}'.".format(_TKL_VER))
+                 f" 'ROOTFS/{_TKL_VER}'.")
     file_or_str.add_argument(
             '-f', '--file', type=str, metavar="PATH_TO_FILE", default=None,
             help="Absolute (i.e. leading /) or relative (to current; i.e. no"
@@ -66,9 +63,10 @@ def main():
             description="Return additional values. If no other output options"
                         " specified, these will be the only output. Otherwise,"
                         " these values will be appended after any other"
-                        " results returned, either space separated, or if -j|--json,"
-                        " as additional key, value pairs.")
-    additional_output.add_argument('-d', '--debian-codename', action="store_true",
+                        " results returned, either space separated, or if"
+                        " -j|--json, as additional key, value pairs.")
+    additional_output.add_argument('-d', '--debian-codename',
+                                   action="store_true",
                                    help="Return system's reported Debian"
                                         " codename (not TurnKey version"
                                         " codename). If rootfs set, then"
@@ -76,19 +74,18 @@ def main():
 
     args = parser.parse_args()
     if args.name or args.tklversion or args.codename or args.arch:
-            output_values = True
+        output_values = True
     else:
-            output_values = False
+        output_values = False
     if args.all and output_values:
-            parser.error(
-                "-a|--all and -n|--name / -t|--tklversion / -c|--codename"
-                " / -r|--arch are mutually exclusive.")
-    if args.json and ( args.all or output_values):
-            parser.error(
-                "-j|--json conflicts with other output values.")
+        parser.error(
+            "-a|--all and -n|--name / -t|--tklversion / -c|--codename"
+            " / -r|--arch are mutually exclusive.")
+    if args.json and (args.all or output_values):
+        parser.error("-j|--json conflicts with other output values.")
     if args.string:
         turnkey_version = args.string
-        rootfs=''
+        rootfs = ''
     else:
         # ensure that args.file is relative to args.rooffs
         if args.file:
@@ -101,8 +98,8 @@ def main():
         turnkey_version = sysversion.get_turnkey_version(rootfs, v_file)
     if not turnkey_version:
         raise TurnkeyVersionError(
-                ("can't detect turnkey version - missing or invalid file '{}'."
-                 ).format(os.path.join(rootfs, v_file)))
+                "can't detect turnkey version - missing or invalid file"
+                f"'{os.path.join(rootfs, v_file)}'.")
 
     tkl_appver = []
     tkl_appver_cls = sysversion.AppVer(turnkey_version, rootfs=rootfs)
@@ -122,7 +119,8 @@ def main():
     if args.debian_codename:
         tkl_appver.append(tkl_appver_cls.deb_codename)
     if args.json:
-        print(json.dumps(tkl_appver_cls.app_json(deb_ver=args.debian_codename), indent=2))
+        print(json.dumps(tkl_appver_cls.app_json(
+              deb_ver=args.debian_codename), indent=2))
     elif tkl_appver:
         print(' '.join(tkl_appver))
     else:
