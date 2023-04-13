@@ -11,7 +11,6 @@
 import re
 import subprocess
 import os
-from sys import stdin
 from typing import Optional
 
 DEFAULT = 'etc/turnkey_version'
@@ -49,13 +48,11 @@ def get_turnkey_release(rootfs: str = '/') -> Optional[str]:
 
 # used by turnkey-version
 def get_turnkey_version(rootfs: str = '/',
-                        fpath: str = None
+                        fpath: str = DEFAULT
                         ) -> Optional[str]:
     """Return turnkey_version. On error, returns None.
     Warning: if fpath is an absoulte path, rootfs will be ignored.
     """
-    if not fpath:
-        fpath = DEFAULT
     try:
         with open(os.path.join(rootfs, fpath), 'r') as fob:
             return fob.read().strip()
