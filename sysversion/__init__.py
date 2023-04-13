@@ -10,7 +10,6 @@
 
 import re
 import subprocess
-from subprocess import PIPE
 import os
 from sys import stdin
 from typing import Optional
@@ -29,15 +28,12 @@ def _parse_turnkey_release(version: str) -> str:
     return ''
 
 
-def get_debian_codename(encoding: str = stdin.encoding,
-                        rootfs: str = None
-                        ) -> str:
+def get_debian_codename(rootfs: str = '/') -> str:
     """Return Debian codename of the system (leverages lsb_release)"""
     comm = ['lsb_release', '-sc']
-    if rootfs and rootfs != '/':
+    if rootfs != '/':
         comm = ['chroot', rootfs] + comm
-    proc = subprocess.run(comm, stdout=PIPE,
-                          encoding=encoding)
+    proc = subprocess.run(comm, capture_output=True, text=True)
     if proc.returncode != 0:
         raise TurnkeyVersionError("lsb_release failed: {proc}'")
     return proc.stdout.rstrip()
@@ -69,20 +65,16 @@ def get_turnkey_version(rootfs: str = '/',
 
 
 class AppVer:
-    def __init__(self, turnkey_version: str = None, rootfs: str = None):
+    def __init__(self, turnkey_version: str = None, rootfs: str = '/'):
         if not turnkey_version:
-            kwargs = {}
-            if rootfs:
-                kwargs['rootfs'] = rootfs
-            turnkey_version = get_turnkey_version(**kwargs)
+            turnkey_version = get_turnkey_version(rootfs=rootfs)
         if not turnkey_version:
             raise TurnkeyVersionError('Error: No TurnKey version found')
-        tkl_ver_list = turnkey_version.split('-')
-        if tkl_ver_list[0] == 'turnkey':
-            tkl_ver_list.pop(0)
-        *appname, self.tklver, self.codename, self.arch = tkl_ver_list
+        if turnkey_version.startswith('turnkey-'):
+            turnkey_version = turnkey_version[8:]
+        self.appname, self.tklver, self.codename, self.arch \
+                = turnkey_version.rsplit('-', 3)
         self.deb_codename = get_debian_codename(rootfs=rootfs)
-        self.appname = '-'.join(appname)
 
     def app_ver(self) -> tuple[str, str, str, str]:
         return (self.appname, self.tklver, self.codename, self.arch)
@@ -96,7 +88,7 @@ class AppVer:
 
 
 # used by turnkey-sysinfo
-def fmt_base_distribution(encoding: str = stdin.encoding) -> str:
+def fmt_base_distribution() -> str:
     """Return a formatted distribution string:
         e.g., Debian 10/Buster"""
     proc = subprocess.run(["lsb_release", "-ircs"],
@@ -104,17 +96,16 @@ def fmt_base_distribution(encoding: str = stdin.encoding) -> str:
     if proc.returncode != 0:
         raise TurnkeyVersionError(f'lsb_release failed: {proc}')
     distro, release, codename = proc.stdout.splitlines()
-    basedist = f"{distro} {release}/{codename.capitalize()}"
-    return basedist
+    return f"{distro} {release}/{codename.capitalize()}"
 
 
-def fmt_sysversion(encoding: str = stdin.encoding) -> str:
+def fmt_sysversion() -> str:
     version_parts = []
     release = get_turnkey_release()
     if release:
         version_parts.append("TurnKey GNU/Linux {}".format(release))
 
-    basedist = fmt_base_distribution(encoding)
+    basedist = fmt_base_distribution()
     if basedist:
         version_parts.append(basedist)
 
