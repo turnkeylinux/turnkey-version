@@ -51,7 +51,7 @@ def get_turnkey_version(rootfs: str = '/',
                         fpath: str = DEFAULT
                         ) -> Optional[str]:
     """Return turnkey_version. On error, returns None.
-    Warning: if fpath is an absoulte path, rootfs will be ignored.
+    Warning: if fpath is an absolute path, rootfs will be ignored.
     """
     try:
         with open(os.path.join(rootfs, fpath), 'r') as fob:
