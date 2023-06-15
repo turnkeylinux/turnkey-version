@@ -34,7 +34,7 @@ def get_debian_codename(rootfs: str = '/') -> str:
         comm = ['chroot', rootfs] + comm
     proc = subprocess.run(comm, capture_output=True, text=True)
     if proc.returncode != 0:
-        raise TurnkeyVersionError("lsb_release failed: {proc}'")
+        raise TurnkeyVersionError(f"lsb_release failed: {proc}'")
     return proc.stdout.rstrip()
 
 
