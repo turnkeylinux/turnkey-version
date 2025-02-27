@@ -1,5 +1,5 @@
 # Copyright (c) 2010 Liraz Siri <liraz@turnkeylinux.org>
-#               2020 TurnKey GNU/Linux <admin@turnkeylinux.org>
+# Copyright (c) 2020-2025 TurnKey GNU/Linux <admin@turnkeylinux.org>
 #
 # This file is part of turnkey-version.
 #
@@ -62,7 +62,7 @@ def get_turnkey_version(rootfs: str = '/',
 
 
 class AppVer:
-    def __init__(self, turnkey_version: str = None, rootfs: str = '/'):
+    def __init__(self, turnkey_version: str | None = None, rootfs: str = '/'):
         if not turnkey_version:
             turnkey_version = get_turnkey_version(rootfs=rootfs)
         if not turnkey_version:
