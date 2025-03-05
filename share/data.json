@@ -8,11 +8,15 @@
 	"codename": {
 		"stretch": 9,
 		"buster": 10,
-		"bullseye": 11
+		"bullseye": 11,
+		"bookwork": 12,
+		"trixie": 13
 	},
 	"turnkey-ver": {
 		"15": "stretch",
 		"16": "buster",
-		"17": "bullseye"
+		"17": "bullseye",
+		"18": "bookworm",
+		"19": "trixie"
 	}
 }
