@@ -64,16 +64,20 @@ def get_turnkey_version(
 
 class AppVer:
     def __init__(
-        self, turnkey_version: str | None = None, rootfs: str = "/",
+        self, turnkey_version: str | None = None, rootfs: str | None = None,
     ) -> None:
+        self.rootfs: str = rootfs or "/"
         if not turnkey_version:
-            turnkey_version = get_turnkey_version(rootfs=rootfs)
+            turnkey_version = get_turnkey_version(rootfs=rootfs or "/")
         if not turnkey_version:
             raise TurnkeyVersionError("Error: No TurnKey version found")
-        turnkey_version = turnkey_version.removeprefix("turnkey-")
+        self.turnkey_version = turnkey_version.removeprefix("turnkey-")
         self.appname, self.tklver, self.codename, self.arch \
-                = turnkey_version.rsplit("-", 3)
-        self.deb_codename = get_debian_codename(rootfs=rootfs)
+                = self.turnkey_version.rsplit("-", 3)
+
+    @property
+    def deb_codename(self) -> str:
+        return get_debian_codename(rootfs=self.rootfs)
 
     def app_ver(self) -> tuple[str, str, str, str]:
         return (self.appname, self.tklver, self.codename, self.arch)
