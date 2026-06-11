@@ -78,9 +78,6 @@ ignore = [
 
     # disable restrictions on exception strings
     "EM101", "EM102", "TRY003",
-
-    # allow use of "magic values" rather than enforcing use of constants
-    "PLR2004"
 ]
 
 [tool.ruff.format]

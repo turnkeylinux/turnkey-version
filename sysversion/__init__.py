@@ -128,7 +128,8 @@ def fmt_sysversion() -> str:
     if basedist:
         version_parts.append(basedist)
 
-    if len(version_parts) == 2:
+    # ignore magic-value-comparison because it's overkill in this instance
+    if len(version_parts) == 2:  # noqa: PLR2004
         version = f"{version_parts[0]} ({version_parts[1]})"
     elif len(version_parts) == 1:
         version = version_parts[0]
