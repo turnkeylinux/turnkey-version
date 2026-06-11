@@ -41,7 +41,7 @@ Output options:
   -n, --name            Return TurnKey appliance name. E.g. core.
   -t, --tklversion      Return TurnKey version number. E.g. 16.0.
   -c, --codename        Return relevant Debian codename. E.g. buster.
-  -r, --arch            Return relevant architechture. E.g. amd64
+  -r, --arch            Return relevant architecture. E.g. amd64
   -a, --all             Return space separated name, version, codename & arch.
                         (Same as -ntcr).
   -j, --json            Return all name info in json format (conflicts with
