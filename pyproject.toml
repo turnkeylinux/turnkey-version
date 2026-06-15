@@ -17,7 +17,7 @@ Homepage = "https://github.com/turnkeylinux/turnkey-version"
 
 [tool.setuptools]
 packages = ["sysversion"]
-script-files = ["turkey-version"]
+script-files = ["turnkey-version"]
 include-package-data = false
 
 [tool.setuptools.package-data]
