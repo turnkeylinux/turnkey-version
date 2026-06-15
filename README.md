@@ -1,3 +1,17 @@
+TurnKey version tool and basic system info python library
+=========================================================
+
+`turnkey-version` is a tool to read and/or parse TurnKey version info.
+
+`sysversion` is a python library that backs `turnkey-version` and also
+gathers basic system information (used by TurnKey custom MOTD generation).
+
+---
+
+turnkey-version usage
+---------------------
+
+```
 usage: turnkey-version [-h] [-f PATH_TO_FILE] [-s TKL_VER_STR] [-n] [-t] [-c]
                        [-r] [-a] [-j] [-d]
                        [rootfs]
@@ -27,7 +41,7 @@ Output options:
   -n, --name            Return TurnKey appliance name. E.g. core.
   -t, --tklversion      Return TurnKey version number. E.g. 16.0.
   -c, --codename        Return relevant Debian codename. E.g. buster.
-  -r, --arch            Return relevant architechture. E.g. amd64
+  -r, --arch            Return relevant architecture. E.g. amd64
   -a, --all             Return space separated name, version, codename & arch.
                         (Same as -ntcr).
   -j, --json            Return all name info in json format (conflicts with
@@ -43,3 +57,4 @@ Additional output options:
                         Return system's reported Debian codename (not TurnKey
                         version codename). If rootfs set, then return codename
                         of chroot.
+```

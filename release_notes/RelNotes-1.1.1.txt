@@ -1,0 +1,40 @@
+v1.1.1 Release Notes
+====================
+
+* Bugfix:
+  - Fix broken '--string' option.
+
+* Code updates:
+  - 'rootfs' arg when initializing 'AppVer' instance now defaults to 'None'.
+  - 'AppVer.deb_codename' is now a '@property' - only run 'lsb_release'
+    if/when deb_codename is explicitly accessed.
+
+* Code/repo clean up:
+  - Update code to Python3.13 standards.
+  - Minor readme update.
+  - Migrate python packaging; setup.py => pyproject.toml.
+  - Define project ruff and mypy rules (in pyproject.toml).
+  - Increased typing coverage and modernization of existing typing.
+  - Linting fixes.
+  - Update README and migrate from .rst => .md.
+  - Remove legacy travis config.
+  - Add "GitHub Action" to do linting & typing checks when PR opened.
+  - Include 'py.typed' to make system aware that turnkey-chroot is typed.
+  - Updated gitignore to ignore common build artifacts.
+
+* Packaging:
+  - Bump python version (v3.5 => v3.13) and other dependencies.
+  - Bump Debian "Standards-Version" to (4.0.0 => 4.7.2).
+  - Remove 'Priority: optional' - do not declare defaults (as per standards
+    v4.72).
+  - Update Debian 'compat' level (10 => 13) & migrate declaration;
+    'debian/compat' file => 'debhelper-compat (= 13)' build depend.
+  - Update build depends' to support pyproject.toml packaging and running
+    tests at build time.
+  - Add git & browser urls.
+  - Correct 'Section'. 'misc' => 'python'.
+  - Correct 'Architecture'. 'any => 'all'.
+  - Update long description.
+  - Update debian/copyright to "proper" format.
+  - Packaging updates/improvements to support reproducable builds, including
+    ensuring python bytecode is not included.

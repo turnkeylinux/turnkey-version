@@ -1,0 +1,36 @@
+name: Lint & Type Check
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie-slim
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Add custom apt repo
+        run: |
+          echo "deb [trusted=yes] http://archive.turnkeylinux.org/debian trixie-testing main" \
+            > /etc/apt/sources.list.d/turnkey.list
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3 python3-pip turnkey-netinfo
+
+      - name: Install Python tools
+        run: pip install ruff mypy --break-system-packages
+
+      - name: Run Ruff
+        run: ruff check turnkey-version sysversion/__init__.py
+
+      - name: Run Mypy
+        run: mypy check turnkey-version sysversion/__init__.py
