@@ -57,7 +57,7 @@ def get_turnkey_version(
     try:
         with open(os.path.join(rootfs, fpath)) as fob:
             return fob.read().strip()
-    except OSError:
+    except (OSError, ValueError):
         pass
     return None
 
