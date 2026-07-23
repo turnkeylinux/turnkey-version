@@ -15,12 +15,18 @@ script to show basic system info.
 import argparse
 import json
 import os
+import sys
+from typing import NoReturn
 
 import sysversion
 
 _ROOTFS = "/"
 _TKL_VER = "etc/turnkey_version"
-TurnkeyVersionError = sysversion.TurnkeyVersionError
+
+
+def fatal(msg: str) -> NoReturn:
+    print(f"Error: {msg}", file=sys.stderr)
+    sys.exit(1)
 
 
 def main() -> None:
@@ -140,7 +146,7 @@ def main() -> None:
 
         turnkey_version = sysversion.get_turnkey_version(rootfs, v_file)
     if not turnkey_version:
-        raise TurnkeyVersionError(
+        fatal(
             "can't detect turnkey version - missing or invalid file"
             f"'{os.path.join(rootfs, v_file)}'.",
         )
