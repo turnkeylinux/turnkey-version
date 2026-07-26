@@ -15,12 +15,19 @@ script to show basic system info.
 import argparse
 import json
 import os
+import sys
+from os.path import isfile, join
+from typing import NoReturn
 
 import sysversion
 
 _ROOTFS = "/"
 _TKL_VER = "etc/turnkey_version"
-TurnkeyVersionError = sysversion.TurnkeyVersionError
+
+
+def fatal(msg: str) -> NoReturn:
+    print(f"Error: {msg}", file=sys.stderr)
+    sys.exit(1)
 
 
 def main() -> None:
@@ -127,6 +134,7 @@ def main() -> None:
     if args.json and (args.all or output_values):
         parser.error("-j|--json conflicts with other output values.")
     if args.string:
+        file = ""
         turnkey_version = args.string
         rootfs = ""
     else:
@@ -137,13 +145,15 @@ def main() -> None:
         else:
             rootfs = args.rootfs
             v_file = _TKL_VER
-
+        file = join(rootfs, v_file)
         turnkey_version = sysversion.get_turnkey_version(rootfs, v_file)
     if not turnkey_version:
-        raise TurnkeyVersionError(
-            "can't detect turnkey version - missing or invalid file"
-            f"'{os.path.join(rootfs, v_file)}'.",
-        )
+        msg = "can't detect turnkey version"
+        if file and not isfile(file):
+            msg = f"{msg} - missing/invalid file: '{file}'"
+        else:
+            msg = f"{msg} - invalid version string"
+        fatal(msg)
 
     tkl_appver = []
     tkl_appver_cls = sysversion.AppVer(turnkey_version, rootfs=rootfs)
