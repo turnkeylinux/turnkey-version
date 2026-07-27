@@ -37,6 +37,9 @@ exclude = [
 # Enable all rules by default - then exclude specific ones as required
 select = ["ALL"]
 ignore = [
+    ### TODO - temporarily allow missing copyright notice from code files
+    "CPY001",
+
     ### Project specific config (general conf below)
 
     # allow "untrusted" subprocess command/s - all commands use arguments
